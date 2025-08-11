@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+:root {
+	--background: #ffffff;
+	--foreground: oklch(27.4% 0.006 286.033);
+	--font-title: "DM Serif Text", sans-serif;
+	--font-paragraph: "Rubik", sans-serif;
+}
+
+@theme inline {
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--font-title: var(--font-title);
+	--font-paragraph: var(--font-paragraph);
+}
+
+body {
+	@apply bg-background text-foreground font-paragraph font-normal;
+}
+
+span[data-error]::after {
+	content: attr(data-error);
+	color: #ef4444;
+	margin-left: 5px;
+	font-size: 0.9em;
+}
+
+@layer base {
+	dialog {
+		margin: auto;
+	}
+	dialog::backdrop {
+		@apply backdrop-blur-xs;
+	}
+}
