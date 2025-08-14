@@ -3,6 +3,8 @@ import { X } from "lucide-react";
 import { type FC, useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
+import { useCreateReview } from "@/hooks/mutations/useCreateReview";
+import { toast } from "@/utils/toast";
 import { Button } from "./commons/Button";
 import { Dialog, DialogFooter, DialogHeader } from "./commons/Dialog";
 import { Rating } from "./commons/Rating";
@@ -19,15 +21,15 @@ const formSchema = z.object({
 			created_at: z.date(),
 		})
 		.nullable(),
-	rating: z.number().min(0).max(5),
-	review: z.string().min(10).max(500),
+	rating: z.number(),
+	review: z.string().max(500),
 });
 
 export const ReviewDialog: FC = () => {
 	const [isOpen, setIsOpen] = useState(false);
 	const [step, setStep] = useState(1);
 
-	const { control, reset, watch, register } = useForm({
+	const { control, reset, watch, register, handleSubmit } = useForm({
 		defaultValues: {
 			restaurant: null,
 			rating: 0,
@@ -45,6 +47,18 @@ export const ReviewDialog: FC = () => {
 		}
 	}, [isOpen, reset]);
 
+	const { mutate: createReview, isPending: isCreateReviewPending } =
+		useCreateReview({
+			onSuccess: () => {
+				setIsOpen(false);
+				reset();
+				toast.success("Crítica criada com sucesso!");
+			},
+			onError: (err) => {
+				toast.error(err.message, "Erro ao criar crítica");
+			},
+		});
+
 	const renderStep = () => {
 		switch (step) {
 			case 1:
@@ -57,6 +71,7 @@ export const ReviewDialog: FC = () => {
 								<SelectRestaurant
 									value={field.value}
 									onChange={(v) => {
+										console.log(v);
 										setStep(2);
 										field.onChange(v);
 									}}
@@ -102,7 +117,20 @@ export const ReviewDialog: FC = () => {
 							>
 								Cancelar
 							</Button>
-							<Button>Próximo</Button>
+							<Button
+								isLoading={isCreateReviewPending}
+								onClick={() => {
+									handleSubmit((data) => {
+										createReview({
+											restaurantId: data.restaurant!.id,
+											rating: data.rating,
+											review: data.review,
+										});
+									})();
+								}}
+							>
+								Salvar
+							</Button>
 						</DialogFooter>
 					</>
 				);
